@@ -1,5 +1,6 @@
 package services;
 
+import repository.TranslationRepository;
 import utils.Config;
 
 import java.util.logging.Level;
@@ -42,20 +43,22 @@ public class DeeplService {
      * @param targetLang Код целевого языка (например, "EN" для английского).
      * @return Переведённый текст, если запрос был успешным, или сообщение об ошибке в случае неудачи.
      */
+    private final TranslationRepository translationRepository = new TranslationRepository();
+
     public String translateText(String text, String sourceLang, String targetLang) {
         try {
-            // Формирование тела запроса
             String requestBody = "text=" + text + "&source_lang=" + sourceLang + "&target_lang=" + targetLang;
-            // Формирование заголовка авторизации с использованием API ключа
             String authHeader = "DeepL-Auth-Key " + Config.API_KEY;
-            // Отправка POST-запроса и получение ответа
             String response = httpClient.sendPostRequest(API_URL, requestBody, authHeader);
-            // Парсинг ответа для получения переведённого текста
-            return parseTranslation(response);
+            String translatedText = parseTranslation(response);
+
+            // Сохраняем перевод в БД
+            translationRepository.saveTranslation(text, sourceLang, targetLang, translatedText);
+
+            return translatedText;
         } catch (Exception e) {
-            // Логирование ошибки с использованием Logger
             LOGGER.log(Level.SEVERE, "Ошибка при переводе текста: ", e);
-            return "Ошибка при переводе."; // Возвращается сообщение об ошибке в случае исключений
+            return "Ошибка при переводе.";
         }
     }
 
