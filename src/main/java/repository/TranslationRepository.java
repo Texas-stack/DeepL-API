@@ -1,16 +1,33 @@
 package repository;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Репозиторий для работы с базой данных переводов.
+ * Содержит методы для сохранения перевода и получения истории переводов.
+ */
 public class TranslationRepository {
+
+    private static final Logger logger = LoggerFactory.getLogger(TranslationRepository.class);
+
     // Подключение к базе данных
     private static final String URL = "jdbc:postgresql://localhost:5432/mydatabase";
     private static final String USER = "myuser";
     private static final String PASSWORD = "mypassword";
 
-    // Метод для сохранения перевода в базу данных
+    /**
+     * Сохраняет перевод в базе данных.
+     *
+     * @param sourceText Текст для перевода.
+     * @param sourceLang Исходный язык текста.
+     * @param targetLang Язык перевода.
+     * @param translatedText Переведённый текст.
+     */
     public void saveTranslation(String sourceText, String sourceLang, String targetLang, String translatedText) {
         String sql = "INSERT INTO translations (source_text, source_lang, target_lang, translated_text) VALUES (?, ?, ?, ?)";
 
@@ -24,11 +41,16 @@ public class TranslationRepository {
             // Выполняем запрос
             stmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            // Логируем ошибку
+            logger.error("Ошибка при сохранении перевода", e);
         }
     }
 
-    // Метод для получения истории переводов из базы данных
+    /**
+     * Получает историю переводов из базы данных.
+     *
+     * @return Список строк, представляющих историю переводов.
+     */
     public List<String> getTranslationHistory() {
         List<String> history = new ArrayList<>();
         String sql = "SELECT source_text, source_lang, target_lang, translated_text FROM translations";
@@ -48,9 +70,9 @@ public class TranslationRepository {
                 history.add(entry);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            // Логируем ошибку
+            logger.error("Ошибка при получении истории переводов", e);
         }
         return history;
     }
-
 }
